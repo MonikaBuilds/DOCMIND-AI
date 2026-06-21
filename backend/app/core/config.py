@@ -26,7 +26,7 @@ class Settings(BaseSettings):
         alias="OPENAI_EMBEDDING_MODEL_NAME",
     )
     gemini_embedding_model_name: str = Field(
-        default="models/embedding-001",
+        default="text-embedding-004",
         alias="GEMINI_EMBEDDING_MODEL_NAME",
     )
     remote_embedding_url: str | None = Field(default=None, alias="REMOTE_EMBEDDING_URL")
