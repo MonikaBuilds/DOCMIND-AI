@@ -1,3 +1,4 @@
+import re
 from app.domain.chunks import DocumentChunk
 from app.domain.retrieval import RetrievedChunk
 
