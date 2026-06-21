@@ -77,17 +77,16 @@ def process_document(
             detail=f"Could not prepare this document: {exc}",
         ) from exc
 
+    # The pipeline already performed all the work, just update the store using results.
     parsed_document = ParsingService().parse_document(record.document)
     cleaned_document = PreprocessingService().clean_document(parsed_document)
-    chunks = MetadataService().propagate_headings(
-        ChunkingService(
-            ChunkingConfig(
-                max_words=request.chunk_size,
-                overlap_words=request.overlap,
-            )
-        ).chunk_document(cleaned_document)
+    
+    runtime_store.save_processed_document(
+        document_id,
+        cleaned_document,
+        indexed.chunks,
+        ai_summary=indexed.ai_summary
     )
-    runtime_store.save_processed_document(document_id, cleaned_document, chunks)
 
     return ProcessDocumentResponse(
         document_id=document_id,
@@ -95,6 +94,7 @@ def process_document(
         page_count=indexed.page_count,
         chunk_count=indexed.chunk_count,
         status="processed",
+        ai_summary=indexed.ai_summary,
     )
 
 
@@ -130,4 +130,5 @@ def _record_to_response(record) -> DocumentRecordResponse:
         status="processed" if record.chunks else "uploaded",
         page_count=record.parsed_document.metadata.page_count if record.parsed_document else None,
         chunk_count=len(record.chunks),
+        ai_summary=record.ai_summary,
     )

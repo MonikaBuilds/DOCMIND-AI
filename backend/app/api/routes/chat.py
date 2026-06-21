@@ -11,6 +11,7 @@ from app.services.llm_service import LLMService
 from app.services.memory_service import ConversationMemoryService
 from app.services.page_query_service import PageQueryService
 from app.services.prompt_service import PromptService
+from app.services.metadata_service import MetadataService
 from app.services.reranking_service import RerankingService
 from app.services.retrieval_service import RetrievalService
 from app.services.vector_service import VectorService
@@ -41,7 +42,15 @@ def chat_with_documents(request: ChatRequest) -> ChatResponse:
         structured_retrieval = False
         document_query_service = DocumentQueryService()
         page_query_service = PageQueryService()
+        metadata_service = MetadataService()
+        active_document_ids = request.document_ids or [doc.document.document_id for doc in runtime_store.list_records()]
         page_number = page_query_service.extract_page_number(request.question)
+        summaries = []
+        for doc_id in active_document_ids:
+            record = runtime_store.get_record(doc_id)
+            if record and record.parsed_document:
+                summaries.append(metadata_service.document_summary(record.parsed_document, record.chunks))
+
         if page_number is not None:
             structured_retrieval = True
             retrieved = page_query_service.chunks_for_page(chunks, page_number, top_k=request.top_k)
@@ -50,6 +59,10 @@ def chat_with_documents(request: ChatRequest) -> ChatResponse:
                     status_code=status.HTTP_404_NOT_FOUND,
                     detail=f"No prepared content found for page {page_number} in the selected document.",
                 )
+        elif document_query_service.is_meta_question(request.question):
+            structured_retrieval = True
+            # For meta questions, we don't necessarily need chunks, but we can provide overview chunks to be safe
+            retrieved = document_query_service.overview_chunks(chunks, top_k=5)
         elif document_query_service.is_overview_question(request.question):
             structured_retrieval = True
             retrieved = document_query_service.overview_chunks(chunks, top_k=max(request.top_k, 8))
@@ -71,7 +84,7 @@ def chat_with_documents(request: ChatRequest) -> ChatResponse:
             PromptService(),
             LLMService(build_llm_provider()),
         )
-        answer = answer_service.generate_answer(request.question, reranked, history)
+        answer = answer_service.generate_answer(request.question, reranked, summaries, history)
     except DocMindError as exc:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(exc)) from exc
 

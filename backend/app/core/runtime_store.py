@@ -9,6 +9,7 @@ class DocumentRuntimeRecord:
     document: Document
     parsed_document: ParsedDocument | None = None
     chunks: list[DocumentChunk] = field(default_factory=list)
+    ai_summary: str | None = None
 
 
 class RuntimeStore:
@@ -38,10 +39,12 @@ class RuntimeStore:
         document_id: str,
         parsed_document: ParsedDocument,
         chunks: list[DocumentChunk],
+        ai_summary: str | None = None,
     ) -> None:
         record = self._documents[document_id]
         record.parsed_document = parsed_document
         record.chunks = chunks
+        record.ai_summary = ai_summary
 
     def get_chunks(self, document_ids: list[str] | None = None) -> list[DocumentChunk]:
         records = self.list_records()

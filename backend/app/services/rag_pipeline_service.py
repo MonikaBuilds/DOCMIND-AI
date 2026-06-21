@@ -14,6 +14,7 @@ from app.services.preprocessing_service import PreprocessingService
 from app.services.prompt_service import PromptService
 from app.services.reranking_service import RerankingService
 from app.services.retrieval_service import RetrievalConfig, RetrievalService
+from app.services.summary_service import SummaryService
 from app.services.vector_service import VectorService
 
 
@@ -24,6 +25,7 @@ class IndexedDocument:
     page_count: int
     chunk_count: int
     chunks: list[DocumentChunk]
+    ai_summary: str | None = None
 
 
 class RAGPipelineService:
@@ -40,6 +42,7 @@ class RAGPipelineService:
         retrieval_service: RetrievalService,
         reranking_service: RerankingService,
         answer_service: AnswerService,
+        summary_service: SummaryService | None = None,
     ) -> None:
         self.parsing_service = parsing_service
         self.preprocessing_service = preprocessing_service
@@ -50,6 +53,7 @@ class RAGPipelineService:
         self.retrieval_service = retrieval_service
         self.reranking_service = reranking_service
         self.answer_service = answer_service
+        self.summary_service = summary_service or SummaryService(self.answer_service.llm_service)
 
     @classmethod
     def from_providers(cls, embedding_provider, vector_store, llm_provider, chunk_config: ChunkingConfig):
@@ -79,6 +83,8 @@ class RAGPipelineService:
         chunks = self.metadata_service.propagate_headings(chunks)
         embeddings = self.embedding_service.embed_chunks(chunks)
         self.vector_service.add_chunks(chunks, embeddings)
+        
+        ai_summary = self.summary_service.generate_document_summary(cleaned_document)
 
         return IndexedDocument(
             document_id=document.document_id,
@@ -86,6 +92,7 @@ class RAGPipelineService:
             page_count=cleaned_document.metadata.page_count,
             chunk_count=len(chunks),
             chunks=chunks,
+            ai_summary=ai_summary,
         )
 
     def answer_question(
@@ -96,5 +103,9 @@ class RAGPipelineService:
     ) -> tuple[CitedAnswer, list[RetrievedChunk]]:
         retrieved = self.retrieval_service.semantic_search(question, top_k=top_k)
         reranked = self.reranking_service.rerank(question, retrieved, top_k=top_k)
-        answer = self.answer_service.generate_answer(question, reranked, conversation_history)
+        answer = self.answer_service.generate_answer(
+            question=question,
+            retrieved_chunks=reranked,
+            conversation_history=conversation_history
+        )
         return answer, reranked

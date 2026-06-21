@@ -15,6 +15,7 @@ class DocumentRecordResponse(BaseModel):
     status: str
     page_count: int | None = None
     chunk_count: int = 0
+    ai_summary: str | None = None
 
 
 class ProcessDocumentResponse(BaseModel):
@@ -23,3 +24,4 @@ class ProcessDocumentResponse(BaseModel):
     page_count: int
     chunk_count: int
     status: str
+    ai_summary: str | None = None

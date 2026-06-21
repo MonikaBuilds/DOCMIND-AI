@@ -923,3 +923,41 @@ input:focus-visible {
     display: none;
   }
 }
+.ai-insight {
+  margin-top: 8px;
+  border: 1px solid #d5e6ed;
+  border-radius: 12px;
+  background: #f1f8fa;
+  padding: 14px;
+}
+
+.insight-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 9px;
+  color: #256f8f;
+  font-size: 13px;
+  font-weight: 850;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.insight-content {
+  display: grid;
+  gap: 8px;
+}
+
+.insight-content p {
+  margin: 0;
+  color: #3b4c54;
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+
+.insight-content p::before {
+  content: '·';
+  margin-right: 8px;
+  color: #256f8f;
+  font-weight: 800;
+}

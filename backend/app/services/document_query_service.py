@@ -9,44 +9,50 @@ class DocumentQueryService:
         normalized = " ".join(query.lower().strip().split())
         overview_patterns = [
             "what is this document about",
-            "what's this document about",
-            "what this document is about",
-            "this document is about",
-            "document is about",
-            "document about",
-            "what is this pdf about",
-            "what's this pdf about",
-            "what this pdf is about",
-            "this pdf is about",
-            "pdf is about",
-            "pdf about",
-            "file is about",
-            "file about",
-            "what is the document about",
-            "what's the document about",
-            "what is the pdf about",
-            "what's the pdf about",
-            "tell me about this document",
-            "tell me about this pdf",
-            "tell about this document",
-            "tell about this pdf",
-            "about this document",
-            "about this pdf",
-            "summarize this document",
-            "summarize this pdf",
-            "summarize the document",
-            "summarize the pdf",
-            "summary of this document",
-            "summary of this pdf",
-            "document summary",
-            "pdf summary",
+            "summarize",
+            "summary",
             "main idea",
             "main topic",
-            "what is the topic",
-            "what topic",
             "overview",
+            "key points",
+            "tl;dr",
+            "tldr",
+            "core theme",
+            "essential information",
         ]
-        return any(pattern in normalized for pattern in overview_patterns)
+        # Keep original patterns but also check for broad keywords
+        if any(pattern in normalized for pattern in overview_patterns):
+            return True
+        
+        # Check for very short broad questions
+        if normalized in ["what is this?", "explain this", "what is it?"]:
+            return True
+            
+        return False
+
+    def is_meta_question(self, query: str) -> bool:
+        """Detects if the user is asking about the system state or document list."""
+        normalized = " ".join(query.lower().strip().split())
+        # Remove 'the', 'a', 'an' for more robust matching
+        essential = re.sub(r"\b(the|a|an)\b", "", normalized).strip()
+        essential = " ".join(essential.split())
+        
+        meta_patterns = [
+            "how many pdfs",
+            "how many documents",
+            "how many files",
+            "what files",
+            "list documents",
+            "list files",
+            "total number of",
+            "what is uploaded",
+            "which documents",
+            "filename",
+            "names of",
+            "page count",
+            "how many pages",
+        ]
+        return any(pattern in essential for pattern in meta_patterns) or any(pattern in normalized for pattern in meta_patterns)
 
     def overview_chunks(
         self,

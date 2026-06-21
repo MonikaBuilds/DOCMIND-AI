@@ -13,3 +13,11 @@ class LLMService:
         if not response:
             return "The model did not return an answer."
         return response
+
+    def generate_simple(self, prompt: str) -> str:
+        # Wrap simple string in GroundedPrompt with default system role
+        grounded = GroundedPrompt(
+            system_prompt="You are a helpful document assistant.",
+            user_prompt=prompt
+        )
+        return self.llm_provider.generate(grounded).strip()

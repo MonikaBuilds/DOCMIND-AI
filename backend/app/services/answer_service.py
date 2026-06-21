@@ -1,4 +1,5 @@
 from app.domain.chat import ChatMessage, CitedAnswer
+from app.domain.metadata import DocumentMetadataSummary
 from app.domain.retrieval import RetrievedChunk
 from app.services.citation_service import CitationService
 from app.services.llm_service import LLMService
@@ -22,11 +23,13 @@ class AnswerService:
         self,
         question: str,
         retrieved_chunks: list[RetrievedChunk],
+        summaries: list[DocumentMetadataSummary] | None = None,
         conversation_history: list[ChatMessage] | None = None,
     ) -> CitedAnswer:
         prompt = self.prompt_service.build_grounded_prompt(
             question=question,
             retrieved_chunks=retrieved_chunks,
+            summaries=summaries,
             conversation_history=conversation_history,
         )
         answer = self.llm_service.generate(prompt)

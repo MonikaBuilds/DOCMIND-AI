@@ -23,6 +23,7 @@ export type DocumentRecord = {
   status: string;
   page_count: number | null;
   chunk_count: number;
+  ai_summary: string | null;
 };
 
 export type SearchResult = {

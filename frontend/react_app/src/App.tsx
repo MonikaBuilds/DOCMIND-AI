@@ -457,8 +457,22 @@ export default function App() {
               className="primary-action"
             >
               {isProcessing ? <Loader2 size={16} className="spin" /> : <Check size={16} />}
-              Prepare file
+              {selectedDocument.status === "processed" ? "Re-process file" : "Prepare file"}
             </button>
+
+            {selectedDocument.ai_summary && (
+              <div className="ai-insight">
+                <div className="insight-header">
+                  <Sparkles size={16} />
+                  <span>AI Document Insight</span>
+                </div>
+                <div className="insight-content">
+                  {selectedDocument.ai_summary.split('\n').map((line, i) => (
+                    <p key={i}>{line}</p>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           <div className="empty-panel">No document selected</div>
