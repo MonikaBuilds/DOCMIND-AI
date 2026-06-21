@@ -125,8 +125,14 @@ class ExtractiveLLMProvider(LLMProvider):
             "overview",
             "main idea",
             "main topic",
+            "topic on page",
+            "topic of page",
+            "discussed on page",
+            "content on page",
         ]
-        return any(pattern in normalized for pattern in broad_patterns)
+        return any(pattern in normalized for pattern in broad_patterns) or (
+            "page" in normalized and ("topic" in normalized or "content" in normalized or "discuss" in normalized)
+        )
 
     def _is_title_question(self, question: str) -> bool:
         normalized = question.lower()

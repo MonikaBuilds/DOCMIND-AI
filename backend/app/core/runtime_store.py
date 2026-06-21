@@ -27,6 +27,9 @@ class RuntimeStore:
     def get_record(self, document_id: str) -> DocumentRuntimeRecord | None:
         return self._documents.get(document_id)
 
+    def delete_document(self, document_id: str) -> DocumentRuntimeRecord | None:
+        return self._documents.pop(document_id, None)
+
     def list_records(self) -> list[DocumentRuntimeRecord]:
         return list(self._documents.values())
 

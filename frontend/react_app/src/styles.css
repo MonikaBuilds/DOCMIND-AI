@@ -154,7 +154,8 @@ input:focus-visible {
 }
 
 .document-item {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 36px;
   align-items: center;
   gap: 11px;
   width: 100%;
@@ -167,7 +168,19 @@ input:focus-visible {
   text-align: left;
 }
 
-.document-item svg {
+.document-select {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  text-align: left;
+}
+
+.document-select svg {
   flex: 0 0 auto;
   color: #256f8f;
 }
@@ -178,13 +191,13 @@ input:focus-visible {
   background: #fff8f1;
 }
 
-.document-item span {
+.document-select span {
   display: grid;
   min-width: 0;
 }
 
-.document-item strong,
-.document-item small,
+.document-select strong,
+.document-select small,
 .document-card strong,
 .document-card small,
 .result-meta span {
@@ -194,13 +207,29 @@ input:focus-visible {
   white-space: nowrap;
 }
 
-.document-item strong {
+.document-select strong {
   font-size: 14px;
 }
 
-.document-item small {
+.document-select small {
   color: #6f675f;
   font-size: 12px;
+}
+
+.document-delete {
+  display: inline-grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: transparent;
+  color: #9b5145;
+}
+
+.document-delete:hover {
+  border-color: #edc8be;
+  background: #fff0eb;
 }
 
 .empty-list,
@@ -476,7 +505,7 @@ input:focus-visible {
 .messages {
   min-height: 0;
   overflow-y: auto;
-  padding: 10px 4px 14px;
+  padding: 10px 4px 96px;
 }
 
 .message {

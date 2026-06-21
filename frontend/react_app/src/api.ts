@@ -48,6 +48,9 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     const message = await response.text();
     throw new Error(message || `Request failed with ${response.status}`);
   }
+  if (response.status === 204) {
+    return undefined as T;
+  }
   return response.json() as Promise<T>;
 }
 
@@ -70,6 +73,12 @@ export async function processDocument(documentId: string, chunkSize = 180, overl
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ chunk_size: chunkSize, overlap })
+  });
+}
+
+export async function deleteDocument(documentId: string): Promise<void> {
+  await request<void>(`/documents/${documentId}`, {
+    method: "DELETE"
   });
 }
 

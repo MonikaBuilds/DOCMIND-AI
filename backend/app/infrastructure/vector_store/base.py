@@ -23,6 +23,10 @@ class VectorStore(ABC):
     ) -> list[RetrievedChunk]:
         raise NotImplementedError
 
+    @abstractmethod
+    def delete_document(self, document_id: str) -> None:
+        raise NotImplementedError
+
 
 class ChromaVectorStore(VectorStore):
     """ChromaDB implementation hidden behind the vector store interface."""
@@ -71,6 +75,10 @@ class ChromaVectorStore(VectorStore):
             include=["documents", "metadatas", "distances"],
         )
         return self._to_retrieved_chunks(results)
+
+    def delete_document(self, document_id: str) -> None:
+        collection = self._get_collection()
+        collection.delete(where={"document_id": document_id})
 
     def _get_collection(self):
         if self._collection is not None:
@@ -176,3 +184,12 @@ class InMemoryVectorStore(VectorStore):
         if left_norm == 0 or right_norm == 0:
             return 0.0
         return dot / (left_norm * right_norm)
+
+    def delete_document(self, document_id: str) -> None:
+        chunk_ids = [
+            chunk_id
+            for chunk_id, (chunk, _) in self._records.items()
+            if chunk.document_id == document_id
+        ]
+        for chunk_id in chunk_ids:
+            self._records.pop(chunk_id, None)

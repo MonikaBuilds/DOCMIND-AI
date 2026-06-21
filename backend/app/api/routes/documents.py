@@ -1,4 +1,5 @@
 import logging
+from pathlib import Path
 
 from fastapi import APIRouter, HTTPException, status
 
@@ -15,6 +16,7 @@ from app.services.metadata_service import MetadataService
 from app.services.parsing_service import ParsingService
 from app.services.preprocessing_service import PreprocessingService
 from app.services.rag_pipeline_service import RAGPipelineService
+from app.services.vector_service import VectorService
 
 router = APIRouter(prefix="/documents", tags=["documents"])
 logger = logging.getLogger(__name__)
@@ -94,6 +96,28 @@ def process_document(
         chunk_count=indexed.chunk_count,
         status="processed",
     )
+
+
+@router.delete("/{document_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_document(document_id: str) -> None:
+    record = runtime_store.delete_document(document_id)
+    if not record:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Document not found: {document_id}",
+        )
+
+    try:
+        VectorService(build_vector_store()).delete_document(document_id)
+    except DocMindError:
+        logger.exception("Could not delete vectors for document %s", document_id)
+
+    try:
+        source_path = Path(record.document.source_path)
+        if source_path.exists() and source_path.is_file():
+            source_path.unlink()
+    except OSError:
+        logger.exception("Could not delete source file for document %s", document_id)
 
 
 def _record_to_response(record) -> DocumentRecordResponse:

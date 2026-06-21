@@ -10,6 +10,7 @@ import {
   Search,
   Send,
   Sparkles,
+  Trash2,
   Upload,
   User,
   X
@@ -20,6 +21,7 @@ import {
   DocumentRecord,
   SearchResult,
   chat,
+  deleteDocument,
   listDocuments,
   processDocument,
   searchDocuments,
@@ -123,6 +125,26 @@ export default function App() {
       setError(getErrorMessage(processError));
     } finally {
       setIsProcessing(false);
+    }
+  }
+
+  async function handleDeleteDocument(documentId: string) {
+    setError(null);
+    try {
+      await deleteDocument(documentId);
+      const remainingDocuments = documents.filter((document) => document.document_id !== documentId);
+      setActiveDocumentId(remainingDocuments[0]?.document_id ?? null);
+      setSearchResults([]);
+      setMessages([
+        {
+          role: "assistant",
+          content:
+            "The file was removed. Choose another document or upload a new PDF to continue."
+        }
+      ]);
+      await refreshDocuments();
+    } catch (deleteError) {
+      setError(getErrorMessage(deleteError));
     }
   }
 
@@ -246,20 +268,34 @@ export default function App() {
         <div className="section-title">Documents</div>
         <div className="document-list">
           {documents.map((document) => (
-            <button
+            <div
               key={document.document_id}
               className={`document-item ${selectedDocument?.document_id === document.document_id ? "active" : ""}`}
-              onClick={() => {
-                setActiveDocumentId(document.document_id);
-                setIsLibraryOpen(false);
-              }}
             >
-              <FileText size={18} />
-              <span>
-                <strong>{document.filename}</strong>
-                <small>{getDocumentStatusLabel(document)}</small>
-              </span>
-            </button>
+              <button
+                type="button"
+                className="document-select"
+                onClick={() => {
+                  setActiveDocumentId(document.document_id);
+                  setIsLibraryOpen(false);
+                }}
+              >
+                <FileText size={18} />
+                <span>
+                  <strong>{document.filename}</strong>
+                  <small>{getDocumentStatusLabel(document)}</small>
+                </span>
+              </button>
+              <button
+                type="button"
+                className="document-delete"
+                onClick={() => handleDeleteDocument(document.document_id)}
+                aria-label={`Delete ${document.filename}`}
+                title="Delete file"
+              >
+                <Trash2 size={16} />
+              </button>
+            </div>
           ))}
           {!documents.length && (
             <div className="empty-list">

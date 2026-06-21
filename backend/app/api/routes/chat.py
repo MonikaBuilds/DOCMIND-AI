@@ -8,6 +8,7 @@ from app.services.answer_service import AnswerService
 from app.services.embedding_service import EmbeddingService
 from app.services.llm_service import LLMService
 from app.services.memory_service import ConversationMemoryService
+from app.services.page_query_service import PageQueryService
 from app.services.prompt_service import PromptService
 from app.services.reranking_service import RerankingService
 from app.services.retrieval_service import RetrievalService
@@ -36,14 +37,24 @@ def chat_with_documents(request: ChatRequest) -> ChatResponse:
         )
 
     try:
-        embedding_service = EmbeddingService(build_embedding_provider())
-        vector_service = VectorService(build_vector_store())
-        retrieval_service = RetrievalService(embedding_service, vector_service)
-        retrieved = retrieval_service.semantic_search(
-            request.question,
-            top_k=request.top_k,
-            document_ids=request.document_ids,
-        )
+        page_query_service = PageQueryService()
+        page_number = page_query_service.extract_page_number(request.question)
+        if page_number is not None:
+            retrieved = page_query_service.chunks_for_page(chunks, page_number, top_k=request.top_k)
+            if not retrieved:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"No prepared content found for page {page_number} in the selected document.",
+                )
+        else:
+            embedding_service = EmbeddingService(build_embedding_provider())
+            vector_service = VectorService(build_vector_store())
+            retrieval_service = RetrievalService(embedding_service, vector_service)
+            retrieved = retrieval_service.semantic_search(
+                request.question,
+                top_k=request.top_k,
+                document_ids=request.document_ids,
+            )
         reranked = RerankingService().rerank(request.question, retrieved, top_k=request.top_k)
 
         memory_service.append_message(request.session_id, "user", request.question)

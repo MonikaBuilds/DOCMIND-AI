@@ -25,3 +25,6 @@ class VectorService:
             return []
 
         return self.vector_store.search(query_embedding, top_k, document_ids=document_ids)
+
+    def delete_document(self, document_id: str) -> None:
+        self.vector_store.delete_document(document_id)
