@@ -139,9 +139,12 @@ class GeminiEmbeddingProvider(EmbeddingProvider):
     def __init__(
         self,
         api_key: str | None,
-        model_name: str = "models/embedding-001",
+        model_name: str = "models/text-embedding-004",
     ) -> None:
         self.api_key = api_key
+        # SELF-HEALING: Gemini models must be prefixed with 'models/'
+        if model_name and not model_name.startswith(("models/", "tunedModels/")):
+            model_name = f"models/{model_name}"
         self.model_name = model_name
         self._genai = None
 
