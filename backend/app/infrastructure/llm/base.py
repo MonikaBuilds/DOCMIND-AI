@@ -39,12 +39,16 @@ class ExtractiveLLMProvider(LLMProvider):
 
         query_terms = set(self._tokens(question))
         is_broad_question = self._is_broad_question(question)
+        is_title_question = self._is_title_question(question)
         ranked = sorted(
             sources,
             key=lambda source: self._score_source(source["text"], query_terms),
             reverse=True,
         )
         best = ranked[0]
+        if is_title_question:
+            return f"The document title or file name is {self._filename_from_citation(best['citation'])}. ({best['citation']})"
+
         best_score = self._score_source(best["text"], query_terms)
         if best_score <= 0 and not is_broad_question:
             return "The provided documents do not contain enough information to answer this."
@@ -123,6 +127,13 @@ class ExtractiveLLMProvider(LLMProvider):
             "main topic",
         ]
         return any(pattern in normalized for pattern in broad_patterns)
+
+    def _is_title_question(self, question: str) -> bool:
+        normalized = question.lower()
+        return "title" in normalized or "file name" in normalized or "filename" in normalized
+
+    def _filename_from_citation(self, citation: str) -> str:
+        return citation.split(", page", 1)[0].strip() or "the selected document"
 
 
 class GeminiLLMProvider(LLMProvider):

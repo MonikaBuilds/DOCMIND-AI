@@ -30,14 +30,23 @@ class RetrievalService:
         self.vector_service = vector_service
         self.config = config or RetrievalConfig()
 
-    def semantic_search(self, query: str, top_k: int | None = None) -> list[RetrievedChunk]:
+    def semantic_search(
+        self,
+        query: str,
+        top_k: int | None = None,
+        document_ids: list[str] | None = None,
+    ) -> list[RetrievedChunk]:
         normalized_query = query.strip()
         if not normalized_query:
             return []
 
         effective_top_k = self._normalize_top_k(top_k)
         query_embedding = self.embedding_service.embed_query(normalized_query)
-        results = self.vector_service.search(query_embedding, top_k=effective_top_k)
+        results = self.vector_service.search(
+            query_embedding,
+            top_k=effective_top_k,
+            document_ids=document_ids,
+        )
         return self._filter_by_score(results)
 
     def keyword_search(

@@ -39,7 +39,11 @@ def chat_with_documents(request: ChatRequest) -> ChatResponse:
         embedding_service = EmbeddingService(build_embedding_provider())
         vector_service = VectorService(build_vector_store())
         retrieval_service = RetrievalService(embedding_service, vector_service)
-        retrieved = retrieval_service.semantic_search(request.question, top_k=request.top_k)
+        retrieved = retrieval_service.semantic_search(
+            request.question,
+            top_k=request.top_k,
+            document_ids=request.document_ids,
+        )
         reranked = RerankingService().rerank(request.question, retrieved, top_k=request.top_k)
 
         memory_service.append_message(request.session_id, "user", request.question)

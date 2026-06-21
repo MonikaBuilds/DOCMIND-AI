@@ -33,7 +33,11 @@ def search_documents(request: SearchRequest) -> SearchResponse:
         results = RetrievalService(
             EmbeddingService(build_embedding_provider()),
             VectorService(build_vector_store()),
-        ).semantic_search(request.query, top_k=request.top_k)
+        ).semantic_search(
+            request.query,
+            top_k=request.top_k,
+            document_ids=request.document_ids,
+        )
     except DocMindError as exc:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(exc)) from exc
 

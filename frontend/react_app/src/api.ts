@@ -73,19 +73,28 @@ export async function processDocument(documentId: string, chunkSize = 180, overl
   });
 }
 
-export async function searchDocuments(query: string, topK = 5): Promise<SearchResult[]> {
+export async function searchDocuments(
+  query: string,
+  topK = 5,
+  documentIds?: string[]
+): Promise<SearchResult[]> {
   const data = await request<{ results: SearchResult[] }>("/search", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ query, top_k: topK })
+    body: JSON.stringify({ query, top_k: topK, document_ids: documentIds })
   });
   return data.results;
 }
 
-export async function chat(question: string, sessionId: string, topK = 5): Promise<ChatResponse> {
+export async function chat(
+  question: string,
+  sessionId: string,
+  topK = 5,
+  documentIds?: string[]
+): Promise<ChatResponse> {
   return request<ChatResponse>("/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ question, session_id: sessionId, top_k: topK })
+    body: JSON.stringify({ question, session_id: sessionId, top_k: topK, document_ids: documentIds })
   });
 }

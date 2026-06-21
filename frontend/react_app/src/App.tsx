@@ -137,7 +137,8 @@ export default function App() {
     try {
       const isReady = await ensureDocumentReady();
       if (!isReady) return;
-      const response: ChatResponse = await chat(cleanQuestion, sessionId);
+      const activeDocumentIds = selectedDocument ? [selectedDocument.document_id] : undefined;
+      const response: ChatResponse = await chat(cleanQuestion, sessionId, 5, activeDocumentIds);
       setMessages((current) => [
         ...current,
         {
@@ -165,7 +166,7 @@ export default function App() {
       return false;
     }
 
-    if (documents.some((document) => document.status === "processed" && document.chunk_count > 0)) {
+    if (selectedDocument?.status === "processed" && selectedDocument.chunk_count > 0) {
       return true;
     }
 
@@ -206,7 +207,8 @@ export default function App() {
     setError(null);
     setIsSearching(true);
     try {
-      setSearchResults(await searchDocuments(cleanQuery));
+      const activeDocumentIds = selectedDocument ? [selectedDocument.document_id] : undefined;
+      setSearchResults(await searchDocuments(cleanQuery, 5, activeDocumentIds));
     } catch (searchError) {
       setError(getErrorMessage(searchError));
     } finally {
@@ -275,7 +277,11 @@ export default function App() {
           </button>
           <div className="topbar-copy">
             <h2>DocMind AI</h2>
-            <p>Ask questions, get summaries, and find answers across your files</p>
+            <p>
+              {selectedDocument
+                ? `Answering from ${selectedDocument.filename}`
+                : "Upload a PDF, choose it, and ask questions with page references"}
+            </p>
           </div>
           <div className="topbar-actions">
             <div className="status-pill">

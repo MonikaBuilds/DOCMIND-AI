@@ -15,7 +15,12 @@ class VectorStore(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def search(self, query_embedding: list[float], top_k: int) -> list[RetrievedChunk]:
+    def search(
+        self,
+        query_embedding: list[float],
+        top_k: int,
+        document_ids: list[str] | None = None,
+    ) -> list[RetrievedChunk]:
         raise NotImplementedError
 
 
@@ -48,14 +53,21 @@ class ChromaVectorStore(VectorStore):
             metadatas=self.metadata_service.chunks_to_vector_metadata(chunks),
         )
 
-    def search(self, query_embedding: list[float], top_k: int) -> list[RetrievedChunk]:
+    def search(
+        self,
+        query_embedding: list[float],
+        top_k: int,
+        document_ids: list[str] | None = None,
+    ) -> list[RetrievedChunk]:
         if top_k <= 0:
             return []
 
         collection = self._get_collection()
+        where = {"document_id": {"$in": document_ids}} if document_ids else None
         results = collection.query(
             query_embeddings=[query_embedding],
             n_results=top_k,
+            where=where,
             include=["documents", "metadatas", "distances"],
         )
         return self._to_retrieved_chunks(results)
@@ -118,13 +130,25 @@ class InMemoryVectorStore(VectorStore):
         for chunk, embedding in zip(chunks, embeddings):
             self._records[chunk.chunk_id] = (chunk, embedding)
 
-    def search(self, query_embedding: list[float], top_k: int) -> list[RetrievedChunk]:
+    def search(
+        self,
+        query_embedding: list[float],
+        top_k: int,
+        document_ids: list[str] | None = None,
+    ) -> list[RetrievedChunk]:
         if top_k <= 0 or not self._records:
             return []
 
+        allowed_document_ids = set(document_ids or [])
+        records = [
+            (chunk, embedding)
+            for chunk, embedding in self._records.values()
+            if not allowed_document_ids or chunk.document_id in allowed_document_ids
+        ]
+
         scored = [
             (self._cosine_similarity(query_embedding, embedding), chunk)
-            for chunk, embedding in self._records.values()
+            for chunk, embedding in records
         ]
         scored.sort(key=lambda item: item[0], reverse=True)
 

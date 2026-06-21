@@ -15,8 +15,13 @@ class VectorService:
 
         self.vector_store.add_chunks(chunks, embeddings)
 
-    def search(self, query_embedding: list[float], top_k: int = 5) -> list[RetrievedChunk]:
+    def search(
+        self,
+        query_embedding: list[float],
+        top_k: int = 5,
+        document_ids: list[str] | None = None,
+    ) -> list[RetrievedChunk]:
         if top_k <= 0:
             return []
 
-        return self.vector_store.search(query_embedding, top_k)
+        return self.vector_store.search(query_embedding, top_k, document_ids=document_ids)
