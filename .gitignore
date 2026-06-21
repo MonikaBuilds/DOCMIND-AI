@@ -4,6 +4,8 @@
 !**/.env.example
 .agents/
 .codex/
+.vercel/
+**/.vercel/
 .venv/
 venv/
 __pycache__/
