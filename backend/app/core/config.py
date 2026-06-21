@@ -26,7 +26,7 @@ class Settings(BaseSettings):
         alias="OPENAI_EMBEDDING_MODEL_NAME",
     )
     gemini_embedding_model_name: str = Field(
-        default="models/text-embedding-004",
+        default="models/gemini-embedding-001",
         alias="GEMINI_EMBEDDING_MODEL_NAME",
     )
     remote_embedding_url: str | None = Field(default=None, alias="REMOTE_EMBEDDING_URL")
@@ -35,7 +35,7 @@ class Settings(BaseSettings):
     remote_request_timeout_seconds: float = Field(default=60.0, alias="REMOTE_REQUEST_TIMEOUT_SECONDS")
     vector_store_provider: str = Field(default="chroma", alias="VECTOR_STORE_PROVIDER")
     llm_provider: str = Field(default="gemini", alias="LLM_PROVIDER")
-    gemini_model_name: str = Field(default="models/gemini-1.5-flash", alias="GEMINI_MODEL_NAME")
+    gemini_model_name: str = Field(default="models/gemini-flash-latest", alias="GEMINI_MODEL_NAME")
     gemini_api_key: str | None = Field(default=None, alias="GEMINI_API_KEY")
     openai_model_name: str = Field(default="gpt-4o-mini", alias="OPENAI_MODEL_NAME")
     openai_api_key: str | None = Field(default=None, alias="OPENAI_API_KEY")
