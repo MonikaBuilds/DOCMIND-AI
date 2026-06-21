@@ -6,24 +6,44 @@ class DocumentQueryService:
     """Routes document-level questions to representative document context."""
 
     def is_overview_question(self, query: str) -> bool:
-        normalized = query.lower()
+        normalized = " ".join(query.lower().strip().split())
         overview_patterns = [
             "what is this document about",
             "what's this document about",
+            "what this document is about",
+            "this document is about",
+            "document is about",
+            "document about",
             "what is this pdf about",
             "what's this pdf about",
+            "what this pdf is about",
+            "this pdf is about",
+            "pdf is about",
+            "pdf about",
+            "file is about",
+            "file about",
             "what is the document about",
             "what's the document about",
             "what is the pdf about",
             "what's the pdf about",
+            "tell me about this document",
+            "tell me about this pdf",
+            "tell about this document",
+            "tell about this pdf",
+            "about this document",
+            "about this pdf",
             "summarize this document",
             "summarize this pdf",
+            "summarize the document",
+            "summarize the pdf",
             "summary of this document",
             "summary of this pdf",
             "document summary",
             "pdf summary",
             "main idea",
             "main topic",
+            "what is the topic",
+            "what topic",
             "overview",
         ]
         return any(pattern in normalized for pattern in overview_patterns)

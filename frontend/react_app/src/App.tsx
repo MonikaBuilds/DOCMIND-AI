@@ -133,6 +133,7 @@ export default function App() {
     try {
       await deleteDocument(documentId);
       const remainingDocuments = documents.filter((document) => document.document_id !== documentId);
+      setDocuments(remainingDocuments);
       setActiveDocumentId(remainingDocuments[0]?.document_id ?? null);
       setSearchResults([]);
       setMessages([

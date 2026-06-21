@@ -6,6 +6,9 @@ def test_detects_document_overview_questions() -> None:
     service = DocumentQueryService()
 
     assert service.is_overview_question("What is this document about?")
+    assert service.is_overview_question("the document is about?")
+    assert service.is_overview_question("Tell me about this PDF")
+    assert service.is_overview_question("PDF is about?")
     assert service.is_overview_question("Summarize this PDF")
     assert service.is_overview_question("Give me the main topic")
     assert not service.is_overview_question("What model is used?")

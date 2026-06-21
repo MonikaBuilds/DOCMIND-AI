@@ -22,8 +22,8 @@ class RetrievalService:
 
     def __init__(
         self,
-        embedding_service: EmbeddingService,
-        vector_service: VectorService,
+        embedding_service: EmbeddingService | None = None,
+        vector_service: VectorService | None = None,
         config: RetrievalConfig | None = None,
     ) -> None:
         self.embedding_service = embedding_service
@@ -41,6 +41,9 @@ class RetrievalService:
             return []
 
         effective_top_k = self._normalize_top_k(top_k)
+        if self.embedding_service is None or self.vector_service is None:
+            raise ValueError("Semantic search requires embedding and vector services.")
+
         query_embedding = self.embedding_service.embed_query(normalized_query)
         results = self.vector_service.search(
             query_embedding,
@@ -62,6 +65,42 @@ class RetrievalService:
         effective_top_k = self._normalize_top_k(top_k)
         scorer = KeywordScorer(chunks)
         return scorer.search(normalized_query, effective_top_k)
+
+    def exact_search(
+        self,
+        query: str,
+        chunks: list[DocumentChunk],
+        top_k: int | None = None,
+    ) -> list[RetrievedChunk]:
+        normalized_query = query.strip()
+        if not normalized_query or not chunks:
+            return []
+
+        effective_top_k = self._normalize_top_k(top_k)
+        pattern = self._exact_pattern(normalized_query)
+        results: list[RetrievedChunk] = []
+
+        for chunk in sorted(chunks, key=lambda item: (item.page_number, item.chunk_index)):
+            matches = list(pattern.finditer(chunk.text))
+            if not matches:
+                continue
+
+            results.append(
+                RetrievedChunk(
+                    chunk_id=chunk.chunk_id,
+                    document_id=chunk.document_id,
+                    filename=chunk.filename,
+                    text=self._snippet_around_match(chunk.text, matches[0]),
+                    score=1.0,
+                    page_number=chunk.page_number,
+                    source=chunk.source,
+                    heading=chunk.heading,
+                )
+            )
+            if len(results) >= effective_top_k:
+                break
+
+        return results
 
     def hybrid_search(
         self,
@@ -92,6 +131,23 @@ class RetrievalService:
             return self.config.default_top_k
 
         return min(top_k, self.config.max_top_k)
+
+    def _exact_pattern(self, query: str) -> re.Pattern[str]:
+        escaped_query = re.escape(query)
+        if re.search(r"\s", query):
+            return re.compile(escaped_query, re.IGNORECASE)
+
+        return re.compile(rf"(?<![A-Za-z0-9-]){escaped_query}(?![A-Za-z0-9-])", re.IGNORECASE)
+
+    def _snippet_around_match(self, text: str, match: re.Match[str], radius: int = 320) -> str:
+        start = max(match.start() - radius, 0)
+        end = min(match.end() + radius, len(text))
+        snippet = text[start:end].strip()
+        if start > 0:
+            snippet = f"...{snippet}"
+        if end < len(text):
+            snippet = f"{snippet}..."
+        return snippet
 
     def _filter_by_score(self, results: list[RetrievedChunk]) -> list[RetrievedChunk]:
         if self.config.min_score is None:

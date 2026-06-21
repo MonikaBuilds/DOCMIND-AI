@@ -13,7 +13,12 @@ class FakeVectorService:
         self.results = results
         self.calls: list[tuple[list[float], int]] = []
 
-    def search(self, query_embedding: list[float], top_k: int = 5) -> list[RetrievedChunk]:
+    def search(
+        self,
+        query_embedding: list[float],
+        top_k: int = 5,
+        document_ids: list[str] | None = None,
+    ) -> list[RetrievedChunk]:
         self.calls.append((query_embedding, top_k))
         return self.results[:top_k]
 
@@ -56,6 +61,21 @@ def test_keyword_search_finds_exact_term_matches():
     assert len(results) == 1
     assert results[0].chunk_id == "doc:p2:c1"
     assert results[0].score == 1.0
+
+
+def test_exact_search_requires_literal_word_or_phrase_matches():
+    chunks = [
+        make_chunk(0, "A transformer attends to visual patches."),
+        make_chunk(1, "The document explains Vision Backbone architecture."),
+        make_chunk(2, "Backbone-like should not match a whole word search."),
+    ]
+    service = RetrievalService(FakeEmbeddingService(), FakeVectorService([]))
+
+    word_results = service.exact_search("backbone", chunks, top_k=5)
+    phrase_results = service.exact_search("Vision Backbone", chunks, top_k=5)
+
+    assert [result.chunk_id for result in word_results] == ["doc:p2:c1"]
+    assert [result.chunk_id for result in phrase_results] == ["doc:p2:c1"]
 
 
 def test_hybrid_search_merges_semantic_and_keyword_results_without_duplicates():

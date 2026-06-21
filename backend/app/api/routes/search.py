@@ -1,13 +1,10 @@
 from fastapi import APIRouter, HTTPException, status
 
 from app.core.exceptions import DocMindError
-from app.core.providers import build_embedding_provider, build_vector_store
 from app.core.runtime_store import runtime_store
 from app.schemas.search import SearchRequest, SearchResponse, SearchResultResponse
-from app.services.embedding_service import EmbeddingService
 from app.services.page_query_service import PageQueryService
 from app.services.retrieval_service import RetrievalService
-from app.services.vector_service import VectorService
 
 router = APIRouter(prefix="/search", tags=["search"])
 
@@ -36,14 +33,10 @@ def search_documents(request: SearchRequest) -> SearchResponse:
         if page_number is not None:
             results = page_query_service.chunks_for_page(chunks, page_number, top_k=request.top_k)
         else:
-            results = RetrievalService(
-                EmbeddingService(build_embedding_provider()),
-                VectorService(build_vector_store()),
-            ).hybrid_search(
+            results = RetrievalService().exact_search(
                 request.query,
                 chunks,
                 top_k=request.top_k,
-                document_ids=request.document_ids,
             )
     except DocMindError as exc:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(exc)) from exc
