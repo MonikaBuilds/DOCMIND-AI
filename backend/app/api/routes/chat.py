@@ -5,6 +5,7 @@ from app.core.providers import build_embedding_provider, build_llm_provider, bui
 from app.core.runtime_store import runtime_store
 from app.schemas.chat import ChatRequest, ChatResponse, CitationResponse
 from app.services.answer_service import AnswerService
+from app.services.document_query_service import DocumentQueryService
 from app.services.embedding_service import EmbeddingService
 from app.services.llm_service import LLMService
 from app.services.memory_service import ConversationMemoryService
@@ -37,25 +38,32 @@ def chat_with_documents(request: ChatRequest) -> ChatResponse:
         )
 
     try:
+        structured_retrieval = False
+        document_query_service = DocumentQueryService()
         page_query_service = PageQueryService()
         page_number = page_query_service.extract_page_number(request.question)
         if page_number is not None:
+            structured_retrieval = True
             retrieved = page_query_service.chunks_for_page(chunks, page_number, top_k=request.top_k)
             if not retrieved:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
                     detail=f"No prepared content found for page {page_number} in the selected document.",
                 )
+        elif document_query_service.is_overview_question(request.question):
+            structured_retrieval = True
+            retrieved = document_query_service.overview_chunks(chunks, top_k=max(request.top_k, 8))
         else:
             embedding_service = EmbeddingService(build_embedding_provider())
             vector_service = VectorService(build_vector_store())
             retrieval_service = RetrievalService(embedding_service, vector_service)
-            retrieved = retrieval_service.semantic_search(
+            retrieved = retrieval_service.hybrid_search(
                 request.question,
+                chunks,
                 top_k=request.top_k,
                 document_ids=request.document_ids,
             )
-        reranked = RerankingService().rerank(request.question, retrieved, top_k=request.top_k)
+        reranked = retrieved if structured_retrieval else RerankingService().rerank(request.question, retrieved, top_k=request.top_k)
 
         memory_service.append_message(request.session_id, "user", request.question)
         history = memory_service.get_history(request.session_id)

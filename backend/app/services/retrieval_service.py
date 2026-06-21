@@ -68,13 +68,18 @@ class RetrievalService:
         query: str,
         chunks: list[DocumentChunk],
         top_k: int | None = None,
+        document_ids: list[str] | None = None,
     ) -> list[RetrievedChunk]:
         normalized_query = query.strip()
         if not normalized_query:
             return []
 
         effective_top_k = self._normalize_top_k(top_k)
-        semantic_results = self.semantic_search(normalized_query, top_k=effective_top_k)
+        semantic_results = self.semantic_search(
+            normalized_query,
+            top_k=effective_top_k,
+            document_ids=document_ids,
+        )
         keyword_results = self.keyword_search(normalized_query, chunks, top_k=effective_top_k)
         fused_results = self._fuse_results(semantic_results, keyword_results)
         return fused_results[:effective_top_k]

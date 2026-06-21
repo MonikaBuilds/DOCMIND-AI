@@ -39,8 +39,9 @@ def search_documents(request: SearchRequest) -> SearchResponse:
             results = RetrievalService(
                 EmbeddingService(build_embedding_provider()),
                 VectorService(build_vector_store()),
-            ).semantic_search(
+            ).hybrid_search(
                 request.query,
+                chunks,
                 top_k=request.top_k,
                 document_ids=request.document_ids,
             )

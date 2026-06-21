@@ -49,6 +49,9 @@ class ExtractiveLLMProvider(LLMProvider):
         if is_title_question:
             return f"The document title or file name is {self._filename_from_citation(best['citation'])}. ({best['citation']})"
 
+        if is_broad_question:
+            return self._overview_answer(sources, query_terms)
+
         best_score = self._score_source(best["text"], query_terms)
         if best_score <= 0 and not is_broad_question:
             return "The provided documents do not contain enough information to answer this."
@@ -98,12 +101,48 @@ class ExtractiveLLMProvider(LLMProvider):
         answer = " ".join(selected).strip()
         return answer[:900]
 
+    def _overview_answer(self, sources: list[dict[str, str]], query_terms: set[str]) -> str:
+        selected_sentences: list[str] = []
+        selected_citations: list[str] = []
+
+        for source in sources:
+            text = source["text"]
+            sentences = [
+                sentence.strip()
+                for sentence in re.split(r"(?<=[.!?])\s+", text)
+                if sentence.strip()
+            ]
+            if not sentences and text.strip():
+                sentences = [text.strip()]
+
+            ranked_sentences = sorted(
+                sentences,
+                key=lambda sentence: self._score_source(sentence, query_terms),
+                reverse=True,
+            )
+            for sentence in ranked_sentences[:2]:
+                if sentence and sentence not in selected_sentences:
+                    selected_sentences.append(sentence)
+                    selected_citations.append(source["citation"])
+                if len(selected_sentences) >= 4:
+                    break
+            if len(selected_sentences) >= 4:
+                break
+
+        if not selected_sentences:
+            return "The provided documents do not contain enough information to answer this."
+
+        answer = " ".join(selected_sentences)[:1200].strip()
+        citations = "; ".join(dict.fromkeys(selected_citations[:3]))
+        return f"{answer} ({citations})"
+
     def _tokens(self, text: str) -> list[str]:
         stopwords = {
             "a", "an", "and", "are", "as", "at", "be", "by", "for", "from",
             "how", "in", "is", "it", "of", "on", "or", "that", "the", "this",
             "to", "was", "were", "what", "when", "where", "which", "who", "why",
-            "with", "about",
+            "with", "about", "document", "pdf", "file", "summarize", "summary",
+            "overview", "main", "topic", "idea",
         }
         return [
             token for token in re.findall(r"[a-zA-Z0-9]+", text.lower())
