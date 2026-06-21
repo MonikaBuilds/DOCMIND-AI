@@ -1,0 +1,12 @@
+{
+  "framework": "vite",
+  "installCommand": "npm install --prefix frontend/react_app",
+  "buildCommand": "npm run build --prefix frontend/react_app",
+  "outputDirectory": "frontend/react_app/dist",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
