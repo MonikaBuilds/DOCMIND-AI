@@ -15,9 +15,9 @@ services:
       - key: API_PREFIX
         value: /api/v1
       - key: EMBEDDING_PROVIDER
-        value: hash
+        value: gemini
       - key: LLM_PROVIDER
-        value: extractive
+        value: gemini
       - key: VECTOR_STORE_PROVIDER
         value: memory
       - key: UPLOAD_DIR
