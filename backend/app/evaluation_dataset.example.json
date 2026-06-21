@@ -1,0 +1,12 @@
+[
+  {
+    "query": "What is retrieval augmented generation?",
+    "expected_chunk_ids": ["doc-1:p1:c0"],
+    "expected_citation_labels": ["rag-paper.pdf, page 1"]
+  },
+  {
+    "query": "Which page explains citations?",
+    "expected_chunk_ids": ["doc-1:p4:c7"],
+    "expected_citation_labels": ["rag-paper.pdf, page 4, Citation Generation"]
+  }
+]

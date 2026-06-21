@@ -1,0 +1,24 @@
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+pydantic==2.10.4
+pydantic-settings==2.7.1
+python-multipart==0.0.20
+
+# Document processing
+pymupdf==1.25.1
+
+# RAG foundation
+chromadb==0.6.3
+sentence-transformers==3.3.1
+rank-bm25==0.2.2
+
+# OCR options are installed when Phase 7 starts.
+# easyocr
+# paddleocr
+
+# LLM provider options
+google-generativeai
+openai
+
+# Phase 21 validation UI
+streamlit==1.41.1
