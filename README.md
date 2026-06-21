@@ -433,9 +433,3 @@ npm.cmd run build
 - improved answer evaluation with LLM-as-judge
 - deployment on managed backend and frontend platforms
 - GPU inference endpoint through RunPod, Modal, or Hugging Face
-
-## Hackathon Pitch
-
-DocMind AI turns static PDFs into an interactive knowledge workspace. It combines document parsing, retrieval, source tracking, and conversational AI into a modular system that can run locally, use commercial APIs, or connect to open-source models hosted on remote GPU infrastructure.
-
-The project is built to be understandable, extensible, and demo-ready: every major AI system component is separated, testable, and explainable.
