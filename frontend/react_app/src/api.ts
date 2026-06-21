@@ -1,4 +1,8 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "/api/v1";
+const configuredApiBaseUrl = import.meta.env.VITE_API_BASE_URL;
+const API_BASE_URL =
+  configuredApiBaseUrl && !configuredApiBaseUrl.includes("your-backend-url")
+    ? configuredApiBaseUrl
+    : "/api/v1";
 
 export type UploadedDocument = {
   document_id: string;
