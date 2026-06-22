@@ -3,7 +3,7 @@
 DocMind AI is a production-minded document intelligence system that lets users upload PDFs and ask questions through a conversational assistant. It parses documents, prepares page-aware sections, retrieves relevant evidence, and answers with source references.
 
 The project is designed as an AI/ML and GenAI engineering showcase: it demonstrates retrieval systems, document processing, provider abstraction, clean FastAPI architecture, evaluation thinking, and a polished user workflow.
-## 🎥 Project Demo
+## 🎥 DocMind AI Demo
 
 **[Watch the Demo Video](https://drive.google.com/file/d/1eU5VhdexjHEJ7Kp49gRj4pNSFLpV4XTd/view?usp=drive_link)**
 
